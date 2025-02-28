@@ -1,5 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
+from .views import password_reset_request, verify_reset_code
 from .views import (
     UserViewSet, ProfileViewSet, TiendaViewSet,
     ProductoViewSet, ReservaViewSet, mis_tiendas, 
@@ -20,5 +21,6 @@ urlpatterns = [
     path('mis-tiendas/', mis_tiendas, name='mis_tiendas'),
     path('notificaciones/', get_notificaciones, name='notificaciones'),
     path('notificaciones/<int:notificacion_id>/leida/', marcar_notificacion_leida, name='marcar-leida'),
-
+    path('api/password-reset-request/', password_reset_request, name='password_reset_request'),
+    path('api/verify-reset-code/', verify_reset_code, name='verify_reset_code'),
 ]

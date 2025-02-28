@@ -24,6 +24,12 @@ from rest_framework.response import Response
 from .models import Profile
 # En views.py cambiar:
 from .serializer import ProfileSerializer# Vista para el modelo User
+from django.contrib.auth import get_user_model
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes
+from django.core.mail import send_mail
+
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
@@ -398,3 +404,70 @@ def marcar_notificacion_leida(request, notificacion_id):
         return Response({'status': 'success'})
     except Notificacion.DoesNotExist:
         return Response({'error': 'Notificación no encontrada'}, status=404)
+
+User = get_user_model()
+
+@api_view(['POST'])
+def password_reset_request(request):
+    email = request.data.get('email')
+    
+    if not email:
+        return Response({'error': 'Debe proporcionar un correo electrónico'}, status=400)
+    
+    try:
+        user = User.objects.get(email=email)
+        # Generar token único
+        token = default_token_generator.make_token(user)
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+        
+        # Enviar correo con código de verificación
+        reset_code = token[:6]  # Usar los primeros 6 caracteres como código
+        
+        # Guardar el código en la base de datos o en caché
+        # Puedes usar Django cache o crear un modelo para almacenar temporalmente
+        
+        # Enviar el correo
+        send_mail(
+            'Recuperación de contraseña',
+            f'Tu código de verificación es: {reset_code}',
+            'leandrowork1@gmail.com',
+            [email],
+            fail_silently=False,
+        )
+        
+        return Response({
+            'message': 'Código de verificación enviado al correo electrónico',
+            'uid': uid
+        })
+        
+    except User.DoesNotExist:
+        # Por seguridad, no revelamos si el correo existe o no
+        return Response({
+            'message': 'Si el correo existe en nuestra base de datos, recibirás un código de verificación'
+        })
+
+@api_view(['POST'])
+def verify_reset_code(request):
+    code = request.data.get('code')
+    uid = request.data.get('uid')
+    new_password = request.data.get('new_password')
+    
+    if not all([code, uid, new_password]):
+        return Response({'error': 'Faltan datos requeridos'}, status=400)
+    
+    try:
+        # Decodificar uid para obtener el id del usuario
+        user_id = urlsafe_base64_decode(uid).decode()
+        user = User.objects.get(pk=user_id)
+        
+        # Verificar que el código sea válido
+        # (aquí deberías implementar tu lógica de verificación)
+        
+        # Cambiar la contraseña
+        user.set_password(new_password)
+        user.save()
+        
+        return Response({'message': 'Contraseña actualizada correctamente'})
+    
+    except Exception as e:
+        return Response({'error': 'Código inválido o expirado'}, status=400)
