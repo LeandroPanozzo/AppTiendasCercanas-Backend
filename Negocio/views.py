@@ -1,6 +1,6 @@
 from djangoApiNegocio import settings
 from rest_framework import viewsets, status
-from .models import Profile, Tienda,  Producto, Reserva, Contiene, DetalleReserva
+from .models import DeviceToken, Profile, Tienda,  Producto, Reserva, Contiene, DetalleReserva
 from .serializer import (
     ProfileSerializer, TiendaSerializer, ProductoSerializer,
     ReservaSerializer,NotificacionSerializer
@@ -471,3 +471,18 @@ def verify_reset_code(request):
     
     except Exception as e:
         return Response({'error': 'Código inválido o expirado'}, status=400)
+    
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def actualizar_token_fcm(request):
+    token = request.data.get('fcm_token')
+    if not token:
+        return Response({'error': 'Token FCM es requerido'}, status=400)
+    
+    # Guardar o actualizar el token
+    DeviceToken.objects.update_or_create(
+        token=token,
+        defaults={'usuario': request.user.profile, 'activo': True}
+    )
+    
+    return Response({'status': 'success'})

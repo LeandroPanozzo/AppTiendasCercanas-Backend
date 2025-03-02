@@ -2,7 +2,7 @@ from rest_framework import serializers
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
 from .models import (
-    Profile, ReservaProducto, Tienda, Producto, Reserva, CategoriaTiendaChoices, 
+    DeviceToken, Profile, ReservaProducto, Tienda, Producto, Reserva, CategoriaTiendaChoices, 
     DiasAtencionChoices
 )
 from django.core.exceptions import ValidationError
@@ -246,3 +246,8 @@ class NotificacionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notificacion
         fields = ['id', 'titulo', 'mensaje', 'leida', 'fecha_creacion', 'tipo']
+# serializers.py - Add this to your serializers
+class DeviceTokenSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DeviceToken
+        fields = ['token']

@@ -419,3 +419,14 @@ class DetalleReserva(models.Model):
     def __str__(self):
         return f"Detalle {self.id_detalle_reserva} - Reserva {self.reserva.id}"
 
+class DeviceToken(models.Model):
+    usuario = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='device_tokens')
+    token = models.CharField(max_length=255, unique=True)
+    activo = models.BooleanField(default=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Token de dispositivo'
+        verbose_name_plural = 'Tokens de dispositivos'
+
